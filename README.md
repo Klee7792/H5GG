@@ -1,53 +1,53 @@
 # H5GG
 
-**Discuss in [Discord](https://discord.gg/FAs4MH7HMc) or [iosgods.com](https://iosgods.com/forum/595-h5gg-igamegod/)**
+**在 [Discord](https://discord.gg/FAs4MH7HMc) 或 [iosgods.com](https://iosgods.com/forum/595-h5gg-igamegod/) 中讨论**
 
-an iOS Mod Engine with JavaScript APIs & Html5 UI.
+一款带有JavaScript API和Html5用户界面的iOS修改引擎。
 
-provide memory [APIs](/examples-JavaScript/) likely Android-GG's Lua APIs.
+提供类似Android版GG修改器的Lua API的[内存API](/examples-JavaScript/)。
 
-support load scripts(*.js or *.html file) from loacl or network.
+支持从本地或网络加载脚本（*.js或*.html文件）。
 
-support load dylib plugin for javascript api ([demo](/pluginDemo/customAlert)).  
+支持加载dylib插件以扩展JavaScript API（[示例](/pluginDemo/customAlert)）。
 
-support [auto search static pointer and offsets of the value](/examples-JavaScript/AutoSearchPointerChains.js).
+支持[自动搜索数值的静态指针和偏移量](/examples-JavaScript/AutoSearchPointerChains.js)。
 
-and you can customize UI by using [HTML+CSS](/examples-HTML5/) without computer.
+你可以使用[HTML+CSS](/examples-HTML5/)在没有电脑的情况下自定义界面。
 
-and you can make your own tweak(dylib) by click one button, so easy!
+你还可以一键制作属于自己的插件（dylib），非常简单！
 
-**For fuzzy search it is recommended to use: https://igg-server.herokuapp.com/**
+**对于模糊搜索，建议使用：https://igg-server.herokuapp.com/**
 
-## H5GG supported 4 modes to run:
+## H5GG支持4种运行模式：
 
-1. [inject H5GG.dylib to ipa for non-jailbreak devices](/packages/)
+1. [向IPA注入H5GG.dylib，适用于非越狱设备](/packages/)
 
-2. [tweak(deb) auto load into all app for jailbroken devices](/packages/)
+2. [插件（deb）自动加载到所有应用，适用于越狱设备](/packages/)
 
-3. [standalone APP for jailbroken devices(compatible with iPad's SlideOver+SplitView)](/appstand/packages/)
+3. [独立应用，适用于越狱设备（兼容iPad的侧拉+分屏功能）](/appstand/packages/)
 
-4. [Float On Screen for jailbroken devices(not compatible with iPad's SlideOver+SplitView), tested on ios11~ios14](/globalview/packages/)
+4. [悬浮窗模式，适用于越狱设备（不兼容iPad的侧拉+分屏功能），已在iOS11~iOS14上测试](/globalview/packages/)
 
-  and there is [a special version for TrollStore](/appstand/packages/)
-
-
-## h5gg-official-plugin [h5frida](/examples-h5frida):
-
-1: support invoke any C/C++/Objective-C function (without jailbroken)
-
-2: support hook any module's Objective-C method (without jailbroken)
-
-3: support hook any module's C/C++ exprot function (without jailbroken)
-
-4: support hook any module's C/C++ internal function/instruction (jailbroken only)
-
-5: **support MSHookFunction for app's C/C++ function/instruction (without jailbroken)**
-
-6: **support code-patch (patch-offset) with bytes dynamically (without jailbroken)**
+   还有[专为TrollStore设计的特殊版本](/appstand/packages/)
 
 
+## h5gg-official-plugin [h5frida](/examples-h5frida)：
 
-## screenshots:
+1：支持调用任意C/C++/Objective-C函数（无需越狱）
+
+2：支持Hook任意模块的Objective-C方法（无需越狱）
+
+3：支持Hook任意模块的C/C++导出函数（无需越狱）
+
+4：支持Hook任意模块的C/C++内部函数/指令（仅越狱设备）
+
+5：**支持对应用的C/C++函数/指令进行MSHookFunction（无需越狱）**
+
+6：**支持动态字节码补丁（patch-offset）（无需越狱）**
+
+
+
+## 截图：
  
 ![text](/pictures/h5gg1.png)
 
@@ -59,35 +59,32 @@ and you can make your own tweak(dylib) by click one button, so easy!
 
 
 
-## Design Html Menu UI in EasyHtml on iPhone/iPad 
-(**install EasyHtml from AppStore!**)
+## 在iPhone/iPad的EasyHtml中设计Html菜单界面
+**（从AppStore安装EasyHtml！）**
 
 ![text](/pictures/easyhtml.png)
 
 
 
-## [Debug the js/html of H5GG running on ios through macOS safari](https://www.lifewire.com/activate-the-debug-console-in-safari-445798):
-the host app need get-task-allow entitlement (jailbroken or sign by Developer Certificate, not sign by Distribution Certificate)
+## [通过macOS Safari调试运行在iOS上的H5GG的js/html](https://www.lifewire.com/activate-the-debug-console-in-safari-445798)：
+宿主应用需要具备get-task-allow权限（需越狱或使用开发者证书签名，不能使用分发证书签名）
 
 ![text](/pictures/macos.png)
 
 
-## Dependences:
+## 依赖项：
 
-the GlobalView module of Floating APP requires these tweaks and may need to update for new ios version.
+悬浮窗应用的全局视图模块需要以下插件，并可能需要针对新iOS版本进行更新。
 
-+ [BackgrounderAction](https://github.com/akusio) : libH5GG.B12.dylib (jp.akusio.backgrounderaction12) for ios11~ios12 
++ [BackgrounderAction](https://github.com/akusio) ：libH5GG.B12.dylib（jp.akusio.backgrounderaction12）适用于iOS11~iOS12 
 
-+ [BackgrounderAction2](https://github.com/akusio) : libH5GG.B.dylib (jp.akusio.backgrounderaction13) for ios13+
++ [BackgrounderAction2](https://github.com/akusio) ：libH5GG.B.dylib（jp.akusio.backgrounderaction13）适用于iOS13+
 
-+ [libAPAppView](https://github.com/Baw-Appie/libAPAppView) : libH5GG.A.dylib (com.rpgfarm.libapappview) for ios13+
-
-
++ [libAPAppView](https://github.com/Baw-Appie/libAPAppView) ：libH5GG.A.dylib（com.rpgfarm.libapappview）适用于iOS13+
 
 
 
-## [H5GG JavaScript Engine Document](/h5gg-js-doc-en.js)
+## [H5GG JavaScript引擎文档](/h5gg-js-doc-en.js)
 
 
-it's all completely free & open source! 
-
+完全免费且开源！
