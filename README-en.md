@@ -1,6 +1,11 @@
 # H5GG
 
-**Discuss in [Discord](https://discord.gg/FAs4MH7HMc) or [iosgods.com](https://iosgods.com/forum/595-h5gg-igamegod/)**
+[![中文 Readme](https://img.shields.io/badge/语言-简体中文-blue)](./README.md)
+![Support](https://img.shields.io/badge/Support-TrollStore-blue)
+
+> **提示:** ：点击上方的「Lang 中文」徽章，可查看中文文档。
+
+**Discuss in [![Discord](https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white)](https://discord.gg/FAs4MH7HMc) or [![iOSGods](https://img.shields.io/badge/iOSGods-red)](https://iosgods.com/forum/595-h5gg-igamegod/)**
 
 an iOS Mod Engine with JavaScript APIs & Html5 UI.
 
@@ -90,4 +95,5 @@ the GlobalView module of Floating APP requires these tweaks and may need to upda
 
 
 it's all completely free & open source! 
+
 
