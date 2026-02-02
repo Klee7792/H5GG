@@ -3,7 +3,7 @@
 [![English Readme](https://img.shields.io/badge/Lang-English-blue)](./README_en.md)
 ![Support](https://img.shields.io/badge/Support-TrollStore-blue)
 
-> **提示:** ：点击上方的「Lang 中文」徽章，可查看中文文档。
+> **Tips:** ：Click the「Lang English」badge above to view the English documentation.
 
 > **在 [![Discord](https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white)](https://discord.gg/FAs4MH7HMc) 或 [![iOSGods](https://img.shields.io/badge/iOSGods-red)](https://iosgods.com/forum/595-h5gg-igamegod/) 中讨论**
 
