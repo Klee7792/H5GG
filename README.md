@@ -5,7 +5,7 @@
 
 > **提示:** ：点击上方的「Lang 中文」徽章，可查看中文文档。
 
-> **在 [Discord](https://discord.gg/FAs4MH7HMc) 或 [iosgods.com](https://iosgods.com/forum/595-h5gg-igamegod/) 中讨论**
+> **在 [![Discord](https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white)](https://discord.gg/FAs4MH7HMc) 或 [![iOSGods](https://img.shields.io/badge/iOSGods-red)](https://iosgods.com/forum/595-h5gg-igamegod/) 中讨论**
 
 一款带有JavaScript API和Html5用户界面的iOS修改引擎。
 
