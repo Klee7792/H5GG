@@ -1,6 +1,11 @@
 # H5GG
 
-**在 [Discord](https://discord.gg/FAs4MH7HMc) 或 [iosgods.com](https://iosgods.com/forum/595-h5gg-igamegod/) 中讨论**
+[![English Readme](https://img.shields.io/badge/Lang-English-blue)](./README_en.md)
+![Support](https://img.shields.io/badge/Support-TrollStore-blue)
+
+> **提示:** ：点击上方的「Lang 中文」徽章，可查看中文文档。
+
+> **在 [Discord](https://discord.gg/FAs4MH7HMc) 或 [iosgods.com](https://iosgods.com/forum/595-h5gg-igamegod/) 中讨论**
 
 一款带有JavaScript API和Html5用户界面的iOS修改引擎。
 
