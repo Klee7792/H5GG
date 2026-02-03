@@ -1,8 +1,4 @@
- 这份H5GG JS脚本文档较为零散，我将其重新整理为结构化的开发文档，补充了参数说明、返回值类型，并添加了一个**内存特征码扫描**的高级示例。
-
----
-
-# H5GG JavaScript 脚本开发文档 (v7.5)
+# H5GG JavaScript 脚本开发文档 (v7.5) - Kimi整理版
 
 ## 一、基础数据类型
 
@@ -117,10 +113,10 @@ alert('找到 ' + count + ' 个结果');
 // 分段获取，每次100条
 var total = h5gg.getResultsCount();
 for(var i = 0; i < total; i += 100) {
-    var batch = h5gg.getResults(100, i);
-    batch.forEach(function(item) {
-        console.log('地址：' + item.address + ' 值：' + item.value);
-    });
+	var batch = h5gg.getResults(100, i);
+	batch.forEach(function(item) {
+		console.log('地址：' + item.address + ' 值：' + item.value);
+	});
 }
 ```
 
@@ -229,8 +225,8 @@ fuckbase(addr, "00F0271E0008201EC0035FD6");
 // 查找特定游戏进程
 var procs = h5gg.getProcList('ShadowTrackerExtra');
 if(procs.length > 0) {
-    var pid = procs[0].pid;
-    h5gg.setTargetProc(pid);
+	var pid = procs[0].pid;
+	h5gg.setTargetProc(pid);
 }
 ```
 
@@ -246,10 +242,10 @@ if(procs.length > 0) {
 ```javascript
 // 定时检查进程是否存在
 setInterval(function() {
-    var list = h5gg.getProcList('目标APP');
-    if(list.length === 0) {
-        alert('目标进程已结束');
-    }
+	var list = h5gg.getProcList('目标APP');
+	if(list.length === 0) {
+		alert('目标进程已结束');
+	}
 }, 3000);
 ```
 
@@ -294,7 +290,7 @@ setButtonImage('data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...');
 
 ```javascript
 setButtonAction(function() {
-    alert('按钮被点击了');
+	alert('按钮被点击了');
 });
 ```
 
@@ -337,8 +333,8 @@ setWindowVisible(true);   // 显示窗口
 
 ```javascript
 setLayoutAction(function(width, height) {
-    console.log('窗口尺寸变化：' + width + 'x' + height);
-    // 可在此重新调整UI布局
+	console.log('窗口尺寸变化：' + width + 'x' + height);
+	// 可在此重新调整UI布局
 });
 ```
 
@@ -355,7 +351,7 @@ h5gg.searchNumber('9999', 'I32', '0x100000000', '0x1600000000');
 
 // 如果结果太多，进行二次搜索（联合搜索）
 if(h5gg.getResultsCount() > 100) {
-    h5gg.searchNearby('100', 'F32', '0x200');
+	h5gg.searchNearby('100', 'F32', '0x200');
 }
 
 // 修改所有结果为999999
@@ -372,17 +368,17 @@ var count = h5gg.getResultsCount();
 var results = h5gg.getResults(count);
 
 for(var i = 0; i < count; i++) {
-    var addr = results[i].address;
-    
-    // 正则匹配以8D4结尾的地址（注意：H5GG地址是反写的）
-    if(/8D4$/.test(addr)) {
-        var base = Number(addr);
-        var offset1 = base - 48;  // 向上偏移12个I32（12*4=48）
-        var offset2 = base;
-        
-        h5gg.setValue('0x' + offset1.toString(16), 0, 'I32');
-        h5gg.setValue('0x' + offset2.toString(16), 18, 'I32');
-    }
+	var addr = results[i].address;
+	
+	// 正则匹配以8D4结尾的地址（注意：H5GG地址是反写的）
+	if(/8D4$/.test(addr)) {
+		var base = Number(addr);
+		var offset1 = base - 48;  // 向上偏移12个I32（12*4=48）
+		var offset2 = base;
+		
+		h5gg.setValue('0x' + offset1.toString(16), 0, 'I32');
+		h5gg.setValue('0x' + offset2.toString(16), 18, 'I32');
+	}
 }
 h5gg.clearResults();
 ```
@@ -393,7 +389,7 @@ var targetAddr = '0x1A2B3CD';
 
 // 使用setInterval而非while循环，避免单线程阻塞
 var locker = setInterval(function() {
-    h5gg.setValue(targetAddr, 9999, 'I32');
+	h5gg.setValue(targetAddr, 9999, 'I32');
 }, 100);  // 每100毫秒刷新一次
 
 // 停止锁定：clearInterval(locker);
@@ -404,12 +400,12 @@ var locker = setInterval(function() {
 // 获取游戏主模块
 var ranges = h5gg.getRangesList('ShadowTrackerExtra');
 if(ranges.length > 0) {
-    var base = Number(ranges[0].start);
-    var patchAddr = base + 0x02EF7144;
-    
-    // Patch为NOP指令 (ARM64: NOP = 0xD503201F)
-    fuckbase(patchAddr, "1F2003D5");
-    alert('基址修改成功');
+	var base = Number(ranges[0].start);
+	var patchAddr = base + 0x02EF7144;
+	
+	// Patch为NOP指令 (ARM64: NOP = 0xD503201F)
+	fuckbase(patchAddr, "1F2003D5");
+	alert('基址修改成功');
 }
 ```
 
@@ -428,75 +424,75 @@ if(ranges.length > 0) {
  * @returns {string|null} - 找到的地址或null
  */
 function scanPattern(moduleName, pattern) {
-    // 获取模块范围
-    var ranges = h5gg.getRangesList(moduleName);
-    if(ranges.length === 0) return null;
-    
-    var start = Number(ranges[0].start);
-    var end = Number(ranges[0].end);
-    var rangeSize = end - start;
-    
-    // 将特征码转为数组
-    var bytes = pattern.split(' ').map(function(b) {
-        return b === '??' ? -1 : parseInt(b, 16);
-    });
-    
-    // 分段搜索，避免内存溢出（每次搜索1MB）
-    var step = 0x100000;
-    for(var addr = start; addr < end; addr += step) {
-        var searchEnd = Math.min(addr + step, end);
-        
-        // 搜索第一个字节
-        var firstByte = bytes.find(function(b) { return b !== -1; });
-        h5gg.clearResults();
-        h5gg.searchNumber(firstByte.toString(), 'U8', 
-            '0x' + addr.toString(16), 
-            '0x' + searchEnd.toString(16));
-        
-        var count = h5gg.getResultsCount();
-        if(count === 0) continue;
-        
-        // 获取结果并验证完整特征码
-        var results = h5gg.getResults(Math.min(count, 1000), 0);
-        
-        for(var i = 0; i < results.length; i++) {
-            var baseAddr = Number(results[i].address);
-            var match = true;
-            
-            // 验证后续字节
-            for(var j = 0; j < bytes.length; j++) {
-                if(bytes[j] === -1) continue; // 通配符跳过
-                
-                var checkAddr = '0x' + (baseAddr + j).toString(16);
-                var val = Number(h5gg.getValue(checkAddr, 'U8'));
-                
-                if(val !== bytes[j]) {
-                    match = false;
-                    break;
-                }
-            }
-            
-            if(match) {
-                h5gg.clearResults();
-                return '0x' + baseAddr.toString(16);
-            }
-        }
-        
-        h5gg.clearResults();
-    }
-    
-    return null;
+	// 获取模块范围
+	var ranges = h5gg.getRangesList(moduleName);
+	if(ranges.length === 0) return null;
+	
+	var start = Number(ranges[0].start);
+	var end = Number(ranges[0].end);
+	var rangeSize = end - start;
+	
+	// 将特征码转为数组
+	var bytes = pattern.split(' ').map(function(b) {
+		return b === '??' ? -1 : parseInt(b, 16);
+	});
+	
+	// 分段搜索，避免内存溢出（每次搜索1MB）
+	var step = 0x100000;
+	for(var addr = start; addr < end; addr += step) {
+		var searchEnd = Math.min(addr + step, end);
+		
+		// 搜索第一个字节
+		var firstByte = bytes.find(function(b) { return b !== -1; });
+		h5gg.clearResults();
+		h5gg.searchNumber(firstByte.toString(), 'U8', 
+			'0x' + addr.toString(16), 
+			'0x' + searchEnd.toString(16));
+		
+		var count = h5gg.getResultsCount();
+		if(count === 0) continue;
+		
+		// 获取结果并验证完整特征码
+		var results = h5gg.getResults(Math.min(count, 1000), 0);
+		
+		for(var i = 0; i < results.length; i++) {
+			var baseAddr = Number(results[i].address);
+			var match = true;
+			
+			// 验证后续字节
+			for(var j = 0; j < bytes.length; j++) {
+				if(bytes[j] === -1) continue; // 通配符跳过
+				
+				var checkAddr = '0x' + (baseAddr + j).toString(16);
+				var val = Number(h5gg.getValue(checkAddr, 'U8'));
+				
+				if(val !== bytes[j]) {
+					match = false;
+					break;
+				}
+			}
+			
+			if(match) {
+				h5gg.clearResults();
+				return '0x' + baseAddr.toString(16);
+			}
+		}
+		
+		h5gg.clearResults();
+	}
+	
+	return null;
 }
 
 // 使用示例：搜索 "12 34 ?? 56 78" 的特征码
 var addr = scanPattern('ShadowTrackerExtra', '12 34 ?? 56 78');
 if(addr) {
-    alert('特征码找到于: ' + addr);
-    // 在此地址基础上进行偏移计算
-    var target = Number(addr) + 0x100;
-    h5gg.setValue('0x' + target.toString(16), 999, 'I32');
+	alert('特征码找到于: ' + addr);
+	// 在此地址基础上进行偏移计算
+	var target = Number(addr) + 0x100;
+	h5gg.setValue('0x' + target.toString(16), 999, 'I32');
 } else {
-    alert('未找到特征码');
+	alert('未找到特征码');
 }
 ```
 
@@ -509,7 +505,7 @@ if(addr) {
 2. **数值运算**：搜索结果中的 `address` 和 `value` 都是**字符串类型**，进行数学运算前必须用 `Number()` 转换。
    ```javascript
    var addr = Number(r[0].address) + 0x100;  // 正确
-   // var addr = r[0].address + 0x100;       // 错误：字符串拼接
+   // var addr = r[0].address + 0x100;	   // 错误：字符串拼接
    ```
 
 3. **数组索引**：Lua数组从 `[1]` 开始，**JavaScript数组从 `[0]` 开始**。
@@ -526,8 +522,8 @@ if(addr) {
 
 7. **十六进制转换**：
    ```javascript
-   var hex = (12345).toString(16);        // "3039"
-   var num = parseInt("3039", 16);        // 12345
+   var hex = (12345).toString(16);		// "3039"
+   var num = parseInt("3039", 16);		// 12345
    ```
 
 8. **范围搜索**：`searchNumber` 支持范围格式，如 `"50~100"` 或 `"2.3~7.8"`。
