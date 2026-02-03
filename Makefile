@@ -1,4 +1,4 @@
-ARCHS = arm64
+ARCHS = arm64 arm64e
 
 TARGET = iphone:13.7:11.4
 
