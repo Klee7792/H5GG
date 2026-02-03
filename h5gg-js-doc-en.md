@@ -58,10 +58,16 @@ setLayoutAction(js callback function); //Set the js callback when the screen rot
 
 ## Notice
 1: The address parameter supports automatic identification in decimal or hexadecimal format starting with `0x`, other parameters must be in string format
+
 2: float number types: `F32`, `F64`, signed number types: `I8`, `I16`, `I32`, `I64`, unsigned number types: `U8`, `U16`, `U32`, `U64`
+
 3: If there are many search results, do not get all the data at one time with `getResults`, it maybe crash for using too mach memory, and should be obtained in sections
+
 4: The address and value of the search result are all string types. If you want to do digital operations, please use `Number(x)` to convert them into numeric types before you can perform operations.
 (Unlike lua, which automatically converts the string types on both sides of the `+` sign to numeric types, in js, if the `+` sign is a string, the two strings will be concatenated)
+
 5: The numeric type can be converted into a hexadecimal string format with `x.toString(16)`, but x must be a numeric type to convert successfully
+
 6: The numerical value of the search supports the range format, such as `"50～100"`, such as `"2.3～7.8"`, both `searchNumber` and `searchNearby` search are supported
+
 7: The default size of the floating window is 370 points wide and 370 points high. You can set the position, size and draggable area through the js api on the H5 page.
