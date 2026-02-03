@@ -89,7 +89,10 @@
 
 
 
-## [H5GG JavaScript引擎文档](/h5gg-js-doc-deepseek.js)
+## [H5GG JavaScript引擎文档](/h5gg-js-doc.md)
+## [H5GG JavaScript引擎文档(DeepSeek)](/h5gg-js-doc-deepseek.md)
+## [H5GG JavaScript引擎文档(Kimi)](/h5gg-js-doc-kimi.md)
+## [H5GG JavaScript引擎文档(Doubao)](/h5gg-js-doc-doubao.md)
 
 
 完全免费且开源！
