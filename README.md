@@ -90,7 +90,7 @@
 
 ## H5GG JavaScript引擎文档
 
-+ [H5GG JavaScript引擎文档](/h5gg-js-doc.md)
++ [H5GG JavaScript引擎文档](/h5gg-js-doc-en.md)
 + [H5GG JavaScript引擎文档(DeepSeek)](/h5gg-js-doc-deepseek.md)
 + [H5GG JavaScript引擎文档(Kimi)](/h5gg-js-doc-kimi.md)
 + [H5GG JavaScript引擎文档(豆包)](/h5gg-js-doc-doubao.md)
