@@ -20,7 +20,7 @@ jobs:
         sudo apt install -y git make perl clang dpkg-dev curl unzip
 
         # 安装 ldid（Ubuntu 24.04 已无此包）
-        curl -LO https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus2/ldid_2.1.5-procursus2_amd64.deb
+        curl -LO https://release-assets.githubusercontent.com/github-production-release-asset/415716398/90c6af77-5f32-49d0-851b-a32e67fba9e2?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-02-03T12%3A59%3A20Z&rscd=attachment%3B+filename%3Dldid_iphoneos_arm64&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-02-03T11%3A58%3A43Z&ske=2026-02-03T12%3A59%3A20Z&sks=b&skv=2018-11-09&sig=fUjviutetmM9YP7%2BcjFkIrY5EF4DgaCXwUpKJp4Dk94%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc3MDEyMDYxOCwibmJmIjoxNzcwMTIwMzE4LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.iO8NxHwKMTVBkPv6YJxZcHgolPKYEjcbOLyqHKm_IOw&response-content-disposition=attachment%3B%20filename%3Dldid_iphoneos_arm64&response-content-type=application%2Foctet-stream
         sudo dpkg -i ldid_2.1.5-procursus2_amd64.deb
 
     - name: Install Theos
