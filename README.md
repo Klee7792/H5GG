@@ -1,6 +1,6 @@
 # H5GG
 
-[![English Readme](https://img.shields.io/badge/Lang-English-blue)](./README_en.md)
+[![English Readme](https://img.shields.io/badge/Lang-English-blue)](./README.en-US.md)
 ![Support](https://img.shields.io/badge/Support-TrollStore-blue)
 
 > **Tips:** ：Click the「Lang English」badge above to view the English documentation.
