@@ -89,7 +89,7 @@
 
 
 
-## [H5GG JavaScript引擎文档](/h5gg-js-doc-en.js)
+## [H5GG JavaScript引擎文档](/h5gg-js-doc-deepseek.js)
 
 
 完全免费且开源！
