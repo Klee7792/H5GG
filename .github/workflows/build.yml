@@ -30,6 +30,19 @@ jobs:
         echo "export THEOS=~/theos" >> ~/.bashrc
         source ~/.bashrc
 
+    - name: Install iOS toolchain
+      run: |
+        mkdir -p ~/theos/toolchain/linux/iphone
+        curl -L https://github.com/ProcursusTeam/Procursus/releases/download/toolchain-2022.10.24/linux-ios-toolchain.tar.gz -o toolchain.tar.gz
+        tar -xzf toolchain.tar.gz -C ~/theos/toolchain/linux/iphone
+
+    - name: Install iOS SDK
+      run: |
+        mkdir -p ~/theos/sdks
+        curl -L https://github.com/theos/sdks/archive/refs/heads/master.zip -o sdks.zip
+        unzip sdks.zip
+        mv sdks-master/*.sdk ~/theos/sdks/
+
     - name: Build tweak
       run: |
         export THEOS=~/theos
