@@ -20,7 +20,7 @@ jobs:
         sudo apt install -y git make perl clang dpkg-dev curl unzip
 
         # 安装 ldid（Ubuntu 24.04 已无此包）
-        curl -LO https://apt.procurs.us/pool/main/l/ldid/ldid_2.1.5-procursus2_amd64.deb
+        curl -LO https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus2/ldid_2.1.5-procursus2_amd64.deb
         sudo dpkg -i ldid_2.1.5-procursus2_amd64.deb
 
     - name: Install Theos
