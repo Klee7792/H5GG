@@ -1,4 +1,4 @@
-# H5GG JavaScript 脚本引擎文档 (v7.5)
+# H5GG JavaScript 脚本引擎文档 (v7.5) - DeepSeek整理版
 
 ## 目录
 - [数值类型](#数值类型)
