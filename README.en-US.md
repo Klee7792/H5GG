@@ -91,10 +91,11 @@ the GlobalView module of Floating APP requires these tweaks and may need to upda
 
 ## H5GG JavaScript Engine Document
 
-+ [H5GG JavaScript Engine Document](/h5gg-js-doc-en.js)
-+ [H5GG JavaScript Engine Document(DeepSeek)](/h5gg-js-doc-deepseek.js)
-+ [H5GG JavaScript Engine Document(Kimi)](/h5gg-js-doc-kimi.js)
-+ [H5GG JavaScript Engine Document(Doubao)](/h5gg-js-doc-doubao.js)
++ [H5GG JavaScript Engine Document](/h5gg-js-doc-en.md)
++ [H5GG JavaScript Engine Document(DeepSeek)](/h5gg-js-doc-deepseek.md)
++ [H5GG JavaScript Engine Document(Kimi)](/h5gg-js-doc-kimi.md)
++ [H5GG JavaScript Engine Document(Doubao)](/h5gg-js-doc-doubao.md)
 
 
 it's all completely free & open source! 
+
