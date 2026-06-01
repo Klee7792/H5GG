@@ -17,7 +17,7 @@ TWEAK_NAME = H5GG
 
 H5GG_FILES = Tweak.mm ldid-master/ldid.cpp ldid-master/lookup2.c
 H5GG_CFLAGS = -fobjc-arc -fvisibility=hidden -DH5GG_RELEASE=1 -Wno-module-import-in-extern-c
-H5GG_CCFLAGS = -fobjc-arc -fvisibility=hidden -std=c++11 -DH5GG_RELEASE=1 -Wno-module-import-in-extern-c
+H5GG_CCFLAGS = -fobjc-arc -fvisibility=hidden -std=c++11 -DH5GG_RELEASE=1 -Wno-module-import-in-extern-c -Wno-macro-redefined
 H5GG_LOGOS_DEFAULT_GENERATOR = internal
 
 include $(THEOS_MAKE_PATH)/tweak.mk
