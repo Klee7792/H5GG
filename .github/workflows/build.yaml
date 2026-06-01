@@ -60,6 +60,15 @@ jobs:
           echo "=== Available SDKs ==="
           ls -la $THEOS/sdks/
 
+      - name: Install ldid
+        run: |
+          if ! command -v ldid &> /dev/null; then
+            echo "Installing ldid..."
+            brew install ldid
+          else
+            echo "ldid already installed"
+          fi
+
       - name: Prepare build environment
         run: |
           chmod +x ldid-master/*.sh 2>/dev/null || true
