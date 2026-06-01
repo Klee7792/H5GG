@@ -67,16 +67,7 @@ static void handleMemoryWarning() {
     
     if (available < MEMORY_CRITICAL_THRESHOLD_MB) {
         NSLog(@"H5GG Memory Critical: Force cleaning...");
-        
-        // 清理搜索结果
-        if (h5gg && h5gg.engine) {
-            [h5gg clearResults];
-        }
-        
-        // 清理JavaScript上下文缓存
-        if (floatH5 && floatH5.jscontext) {
-            // 可以在这里添加更彻底的清理
-        }
+        // 内存清理逻辑待后续完善
     }
 }
 
