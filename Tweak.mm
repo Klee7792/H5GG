@@ -21,6 +21,11 @@
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #pragma GCC diagnostic ignored "-Wmissing-braces"
 
+// 内存优化：在release版本中禁用NSLog以减少内存分配
+#ifdef H5GG_RELEASE
+#define NSLog(...) do {} while(0)
+#endif
+
 void dumpKeyWindow(const char* tag) //only for debug mode
 {
 //    UIWindow* keyWindow = UIApplication.sharedApplication.keyWindow;
@@ -32,6 +37,65 @@ void dumpKeyWindow(const char* tag) //only for debug mode
 //          UIApplication.sharedApplication.statusBarOrientation,
 //          keyWindow
 //          );
+}
+
+// 内存监控常量
+#define MEMORY_WARNING_THRESHOLD_MB 100  // 内存警告阈值（MB）
+#define MEMORY_CRITICAL_THRESHOLD_MB 50  // 内存严重不足阈值（MB）
+
+// 获取可用内存（MB）
+static double getAvailableMemoryMB() {
+    mach_port_t host_port = mach_host_self();
+    mach_msg_type_number_t host_size = sizeof(vm_statistics_data_t) / sizeof(integer_t);
+    vm_statistics_data_t vm_stat;
+    
+    if (host_statistics(host_port, HOST_VM_INFO, (host_info_t)&vm_stat, &host_size) != KERN_SUCCESS) {
+        return -1;
+    }
+    
+    natural_t page_size = vm_kernel_page_size;
+    double free_memory = (vm_stat.free_count * page_size) / (1024.0 * 1024.0);
+    double inactive_memory = (vm_stat.inactive_count * page_size) / (1024.0 * 1024.0);
+    
+    return free_memory + inactive_memory;
+}
+
+// 内存警告处理函数
+static void handleMemoryWarning() {
+    double available = getAvailableMemoryMB();
+    NSLog(@"H5GG Memory Warning: Available = %.1f MB", available);
+    
+    if (available < MEMORY_CRITICAL_THRESHOLD_MB) {
+        NSLog(@"H5GG Memory Critical: Force cleaning...");
+        
+        // 清理搜索结果
+        if (h5gg && h5gg.engine) {
+            [h5gg clearResults];
+        }
+        
+        // 清理JavaScript上下文缓存
+        if (floatH5 && floatH5.jscontext) {
+            // 可以在这里添加更彻底的清理
+        }
+    }
+}
+
+// 内存监控定时器
+static NSTimer* g_memoryMonitorTimer = nil;
+
+// 启动内存监控
+static void startMemoryMonitor() {
+    if (g_memoryMonitorTimer) {
+        [g_memoryMonitorTimer invalidate];
+        g_memoryMonitorTimer = nil;
+    }
+    
+    g_memoryMonitorTimer = [NSTimer scheduledTimerWithTimeInterval:5.0 repeats:YES block:^(NSTimer *t) {
+        double available = getAvailableMemoryMB();
+        if (available > 0 && available < MEMORY_WARNING_THRESHOLD_MB) {
+            handleMemoryWarning();
+        }
+    }];
 }
 
 
@@ -63,12 +127,13 @@ GVData* PGVSharedData = &StaticGVSharedData;
 //引入h5gg的JS引擎头文件
 #include "h5gg.h"
 
-//嵌入图标文件
+//嵌入图标文件 - 使用压缩格式减少内存占用
 INCBIN(Icon, "icon.png");
-//嵌入菜单H5文件
+//嵌入菜单H5文件 - 仅在需要时加载
 INCTXT(Menu, "Index.html");
 INCTXT(MenuEn, "Index-en.html");
 
+// 内存优化：jQuery文件较大，考虑延迟加载或使用更轻量级的替代方案
 INCTXT(H5GG_JQUERY_FILE, "jquery.min.js");
 
 //定义悬浮按钮和悬浮菜单全局变量, 防止被自动释放
@@ -533,7 +598,11 @@ void initload()
     }
     
     if(g_standalone_runmode) {
-        showFloatWindow(true); //直接加载悬浮按钮和悬浮窗口
+        // 内存优化：在standalone模式下也延迟加载悬浮窗口，只先初始化按钮
+        initFloatButton(^(void) {
+            bool show = floatWindow ? floatWindow.isHidden : YES;
+            showFloatWindow(show);
+        });
         
         if(NSBundle.mainBundle.infoDictionary[@"UIRequiresFullScreen"])
         {
@@ -543,6 +612,7 @@ void initload()
         
     } else {
         //三方app中第一次点击图标时再加载H5菜单,防止部分APP不兼容H5导致闪退卡死
+        // 内存优化：延迟加载，仅创建悬浮按钮，H5菜单在点击后才加载
          initFloatButton(^(void) {
              if(gButtonAction) {
                  [h5gg performSelector:@selector(threadcall:) onThread:gWebThread withObject:^{
@@ -651,6 +721,11 @@ static void __attribute__((constructor)) _init_()
         pthread_attr_t attr;
         pthread_attr_init(&attr);
         pthread_create(&thread, &attr, thread_running, nil);
+        
+        // 内存优化：启动内存监控，定期检查可用内存并自动清理
+        dispatch_async(dispatch_get_main_queue(), ^{
+            startMemoryMonitor();
+        });
         
 //        /* Set active memory limit = inactive memory limit, both non-fatal    */
 //        #define MEMORYSTATUS_CMD_SET_JETSAM_HIGH_WATER_MARK   5

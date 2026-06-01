@@ -38,6 +38,10 @@ objc_method_pointer g_orig_didCreateJavaScriptContext=NULL;
 @property BOOL usingCustomDialog;
 @property void(^reloadAction)(void);
 
+// 内存优化：标记是否正在使用，用于自动清理
+@property BOOL isActive;
+@property NSDate* lastActiveTime;
+
 -(void)setLocation:(CGPoint*)point;
 -(void)setAction:(NSString*)name callback:(id)block;
 -(NSString*)evalJS:(NSString*)code;
@@ -64,6 +68,10 @@ objc_method_pointer g_orig_didCreateJavaScriptContext=NULL;
         self.usingCustomDialog = version>13.0 && version<13.4;
         
         self.touchableAll = YES;
+        
+        // 内存优化：初始化活动状态
+        self.isActive = YES;
+        self.lastActiveTime = [NSDate date];
         
         //self.alpha = 0.85; //整体透明度
         //self.hidden = YES; //默认不显示
@@ -109,11 +117,14 @@ objc_method_pointer g_orig_didCreateJavaScriptContext=NULL;
 //            }
 //        }
         
+        // 内存优化：禁用滚动视图的不必要功能
         self.scrollView.bounces=NO;
         self.scrollView.scrollEnabled=NO;
         [self.scrollView setShowsVerticalScrollIndicator:NO];
         [self.scrollView setShowsHorizontalScrollIndicator:NO];
         [self.scrollView setContentInsetAdjustmentBehavior: UIScrollViewContentInsetAdjustmentNever];
+        [self.scrollView setAlwaysBounceVertical:NO];
+        [self.scrollView setAlwaysBounceHorizontal:NO];
         
         for (UIView* view in self.scrollView.subviews) {
             if ([view.class.description isEqualToString:@"UIWebBrowserView"])

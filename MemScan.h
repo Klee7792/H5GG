@@ -23,6 +23,10 @@
 
 using namespace std;
 
+// 内存优化常量
+#define MAX_SEARCH_RESULTS 100000  // 最大搜索结果数量限制，防止内存耗尽
+#define REGION_CACHE_SIZE 64 * 1024 * 1024  // 单次加载区域最大大小64MB
+
 extern "C" kern_return_t mach_vm_region
 (
      vm_map_t target_task,
@@ -86,6 +90,46 @@ typedef struct _addrRange{
     uint64_t end;
 } AddrRange;
 
+// 联合搜索数据结构
+typedef struct _groupItem {
+    uint8_t valuebuf[16];  // 支持最大16字节（F64/I64）
+    int type;               // 值类型
+    int len;                // 值长度
+    
+    _groupItem() {
+        memset(valuebuf, 0, sizeof(valuebuf));
+        type = 0;
+        len = 0;
+    }
+} GroupItem;
+
+// 联合搜索参数
+typedef struct _groupSearchParams {
+    vector<GroupItem> items;      // 搜索项列表
+    int totalRange;               // 总范围（步长）
+    int anchorIndex;              // 锚点索引（用于优化的值）
+    AddrRange range;              // 搜索内存范围
+    
+    _groupSearchParams() {
+        totalRange = 0;
+        anchorIndex = 0;
+        range.start = 0;
+        range.end = 0;
+    }
+} GroupSearchParams;
+
+// 联合搜索结果
+typedef struct _groupResult {
+    uint64_t baseAddress;
+    vector<uint32_t> slides;
+    int matchCount;
+    
+    _groupResult(uint64_t base) {
+        baseAddress = base;
+        matchCount = 0;
+    }
+} GroupResult;
+
 class JJMemoryEngine
 {
     mach_port_t task;
@@ -94,23 +138,28 @@ class JJMemoryEngine
     bool firstScanDone;
     float float_tolerance;
     int lastNumberType;
+    bool memoryLimitReached;  // 内存限制标志，防止过度分配
     
     void freeResults()
     {
-        if(result->count != 0) {
-            for(int i =0;i<result->regions.size();i++){
-                
-                result->regions[i]->slides.clear();
-                result->regions[i]->slides.shrink_to_fit();
-                result_region *dealloc_1 = result->regions[i];
-                delete dealloc_1;
-                
+        if(result) {
+            for(int i = 0; i < result->regions.size(); i++){
+                if(result->regions[i]) {
+                    result->regions[i]->slides.clear();
+                    result->regions[i]->slides.shrink_to_fit();
+                    result->regions[i]->types.clear();
+                    result->regions[i]->types.shrink_to_fit();
+                    delete result->regions[i];
+                    result->regions[i] = NULL;
+                }
             }
+            result->regions.clear();
+            result->regions.shrink_to_fit();
+            delete result;
+            result = NULL;
         }
-        result->regions.clear();
-        result->regions.shrink_to_fit();
-        Result *dealloc_2 = result;
-        delete dealloc_2;
+        // 重置内存限制标志
+        this->memoryLimitReached = false;
     }
     
     bool readMemory(void* buf, uint64_t addr, size_t len)
@@ -323,6 +372,11 @@ class JJMemoryEngine
     {
         int len = JJ_Search_Type_Len[type];
         
+        // 内存优化：如果已达到结果数量限制，跳过扫描
+        if(this->memoryLimitReached) {
+            return;
+        }
+        
         result_region* newRegion = NULL;
         
         bool remapped;
@@ -334,6 +388,13 @@ class JJMemoryEngine
             uint64_t left_size = size;
             while(left_size >= len)
             {
+                // 内存优化：限制结果数量，防止内存耗尽
+                if(this->result->count >= MAX_SEARCH_RESULTS) {
+                    this->memoryLimitReached = true;
+                    NSLog(@"Search results reached limit: %d", MAX_SEARCH_RESULTS);
+                    break;
+                }
+                
                 uint64_t pfound = ScanData(pcurdata, left_size, target, type);
                 if(!pfound) break;
                 
@@ -497,6 +558,7 @@ public:
         this->firstScanDone = false;
         this->float_tolerance = 0.0;
         this->lastNumberType = 0;
+        this->memoryLimitReached = false;  // 初始化内存限制标志
     }
     
     ~JJMemoryEngine(){
@@ -805,6 +867,267 @@ public:
             }
         }
         return results;
+    }
+    
+    // 比较指定地址的值是否与给定项匹配
+    bool compareValueAtAddress(uint64_t addr, GroupItem* item)
+    {
+        uint8_t readBuf[16] = {0};
+        if(!readMemory(readBuf, addr, item->len)) {
+            return false;
+        }
+        
+        // 根据类型比较
+        switch(item->type) {
+            case JJ_Search_Type_Float: {
+                float v1 = *(float*)item->valuebuf;
+                float v2 = *(float*)readBuf;
+                float diff = fabs(v1 - v2);
+                if(diff <= this->float_tolerance) return true;
+            } break;
+            case JJ_Search_Type_Double: {
+                double v1 = *(double*)item->valuebuf;
+                double v2 = *(double*)readBuf;
+                double diff = fabs(v1 - v2);
+                if(diff <= this->float_tolerance) return true;
+            } break;
+            case JJ_Search_Type_SByte: {
+                if(*(int8_t*)readBuf == *(int8_t*)item->valuebuf) return true;
+            } break;
+            case JJ_Search_Type_UByte: {
+                if(*(uint8_t*)readBuf == *(uint8_t*)item->valuebuf) return true;
+            } break;
+            case JJ_Search_Type_SShort: {
+                if(*(int16_t*)readBuf == *(int16_t*)item->valuebuf) return true;
+            } break;
+            case JJ_Search_Type_UShort: {
+                if(*(uint16_t*)readBuf == *(uint16_t*)item->valuebuf) return true;
+            } break;
+            case JJ_Search_Type_SInt: {
+                if(*(int32_t*)readBuf == *(int32_t*)item->valuebuf) return true;
+            } break;
+            case JJ_Search_Type_UInt: {
+                if(*(uint32_t*)readBuf == *(uint32_t*)item->valuebuf) return true;
+            } break;
+            case JJ_Search_Type_SLong: {
+                if(*(int64_t*)readBuf == *(int64_t*)item->valuebuf) return true;
+            } break;
+            case JJ_Search_Type_ULong: {
+                if(*(uint64_t*)readBuf == *(uint64_t*)item->valuebuf) return true;
+            } break;
+        }
+        return false;
+    }
+    
+    // 在指定范围内查找匹配项的地址
+    vector<uint64_t> findValueInRange(uint64_t startAddr, uint64_t endAddr, GroupItem* item)
+    {
+        vector<uint64_t> matches;
+        uint64_t addr = startAddr;
+        
+        while(addr < endAddr && matches.size() < 10000) {  // 限制每轮匹配数量
+            if(compareValueAtAddress(addr, item)) {
+                matches.push_back(addr);
+            }
+            addr += item->len;
+        }
+        
+        return matches;
+    }
+    
+    // 计算某个值在内存中的匹配数量（用于锚点选择优化）
+    size_t countMatchesInRange(AddrRange range, GroupItem* item)
+    {
+        size_t count = 0;
+        size_t checkedSize = 0;
+        
+        // 抽样统计，避免全量扫描消耗太多时间
+        // 对于小于16KB的区域进行全量检查
+        if(range.end - range.start <= 16 * 1024) {
+            for(uint64_t addr = range.start; addr < range.end; addr += item->len) {
+                uint8_t readBuf[16] = {0};
+                if(readMemory(readBuf, addr, item->len)) {
+                    if(memcmp(readBuf, item->valuebuf, item->len) == 0) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+        
+        // 对于大区域，抽样统计（每16字节检查一次）
+        size_t sampleStep = 16;
+        for(uint64_t addr = range.start; addr < range.end; addr += sampleStep) {
+            uint8_t readBuf[16] = {0};
+            if(readMemory(readBuf, addr, item->len)) {
+                if(memcmp(readBuf, item->valuebuf, item->len) == 0) {
+                    count++;
+                }
+            }
+            checkedSize += sampleStep;
+            // 限制检查范围，最多检查4MB
+            if(checkedSize >= 4 * 1024 * 1024) {
+                break;
+            }
+        }
+        
+        // 按比例估算总数
+        if(range.end - range.start > 4 * 1024 * 1024) {
+            double ratio = (double)(range.end - range.start) / checkedSize;
+            count = (size_t)(count * ratio);
+        }
+        
+        return count;
+    }
+    
+    // 联合搜索：使用给定参数搜索多个值的组合
+    void JJGroupSearch(GroupSearchParams* params)
+    {
+        if(params->items.size() < 2) {
+            NSLog(@"JJGroupSearch: need at least 2 items");
+            return;
+        }
+        
+        int itemCount = (int)params->items.size();
+        int anchorIdx = params->anchorIndex;
+        int range = params->totalRange;
+        AddrRange searchRange = params->range;
+        
+        NSLog(@"JJGroupSearch: itemCount=%d, anchorIdx=%d, range=%d", itemCount, anchorIdx, range);
+        
+        // 优化锚点选择：如果指定了锚点索引则使用它，否则自动选择
+        if(anchorIdx < 0 || anchorIdx >= itemCount) {
+            // 自动选择锚点 - 选择匹配数量最少的值作为锚点
+            size_t minMatches = SIZE_MAX;
+            int bestAnchor = 0;
+            
+            NSLog(@"JJGroupSearch: auto selecting best anchor...");
+            for(int i = 0; i < itemCount; i++) {
+                size_t matches = countMatchesInRange(searchRange, &params->items[i]);
+                NSLog(@"JJGroupSearch: item[%d] estimated matches=%zu", i, matches);
+                if(matches < minMatches) {
+                    minMatches = matches;
+                    bestAnchor = i;
+                }
+            }
+            anchorIdx = bestAnchor;
+            NSLog(@"JJGroupSearch: selected anchor=%d with ~%zu matches", anchorIdx, minMatches);
+        }
+        
+        // 获取锚点项
+        GroupItem* anchorItem = &params->items[anchorIdx];
+        
+        // 第一阶段：查找锚点值的所有匹配地址
+        vector<uint64_t> anchorMatches = findValueInRange(searchRange.start, searchRange.end, anchorItem);
+        NSLog(@"JJGroupSearch: anchor matches=%zu", anchorMatches.size());
+        
+        if(anchorMatches.empty()) {
+            return;
+        }
+        
+        // 限制锚点匹配数量，防止内存溢出
+        if(anchorMatches.size() > 10000) {
+            NSLog(@"JJGroupSearch: too many anchor matches, limiting to 10000");
+            anchorMatches.resize(10000);
+        }
+        
+        // 第二阶段：对每个锚点匹配，验证其他值
+        for(size_t i = 0; i < anchorMatches.size() && !this->memoryLimitReached; i++) {
+            uint64_t anchorAddr = anchorMatches[i];
+            bool allMatch = true;
+            uint64_t baseAddress = 0;  // 记录第一个值的地址（用于结果输出）
+            
+            // 检查是否使用滑动窗口模式（所有值连续）
+            if(range > 0) {
+                // 计算第一个值的基准地址
+                // 如果锚点不是第一个值，需要向前偏移（减去锚点之前所有值的长度）
+                baseAddress = anchorAddr;
+                for(int j = 0; j < anchorIdx; j++) {
+                    baseAddress -= params->items[j].len;
+                }
+                
+                // 验证基准地址是否在搜索范围内
+                if(baseAddress < searchRange.start || baseAddress + range > searchRange.end) {
+                    continue;
+                }
+                
+                // 按用户输入的顺序验证每个值
+                for(int j = 0; j < itemCount; j++) {
+                    GroupItem* item = &params->items[j];
+                    uint64_t targetAddr = baseAddress;
+                    
+                    // 计算当前值相对于基准地址的偏移
+                    for(int k = 0; k < j; k++) {
+                        targetAddr += params->items[k].len;
+                    }
+                    
+                    if(!compareValueAtAddress(targetAddr, item)) {
+                        allMatch = false;
+                        break;
+                    }
+                }
+                
+                if(allMatch) {
+                    // 找到一个匹配
+                    if(!this->result->regions.empty() && 
+                       this->result->regions.back()->region_base == baseAddress) {
+                        // 同一个地址，添加到现有region
+                        this->result->regions.back()->slides.push_back(0);
+                    } else {
+                        result_region* newRegion = new result_region(baseAddress, range);
+                        newRegion->slides.push_back(0);
+                        this->result->regions.push_back(newRegion);
+                    }
+                    this->result->count++;
+                    
+                    if(this->result->count >= MAX_SEARCH_RESULTS) {
+                        this->memoryLimitReached = true;
+                        NSLog(@"JJGroupSearch: reached max results limit");
+                        break;
+                    }
+                }
+            } else {
+                // 非连续模式：每个值在各自的位置（范围限制内）
+                // 计算基准地址
+                baseAddress = anchorAddr;
+                for(int j = 0; j < anchorIdx; j++) {
+                    baseAddress -= params->items[j].len;
+                }
+                
+                if(baseAddress < searchRange.start) {
+                    continue;
+                }
+                
+                for(int j = 0; j < itemCount; j++) {
+                    GroupItem* item = &params->items[j];
+                    uint64_t targetAddr = baseAddress;
+                    
+                    for(int k = 0; k < j; k++) {
+                        targetAddr += params->items[k].len;
+                    }
+                    
+                    if(targetAddr >= searchRange.end || !compareValueAtAddress(targetAddr, item)) {
+                        allMatch = false;
+                        break;
+                    }
+                }
+                
+                if(allMatch) {
+                    result_region* newRegion = new result_region(baseAddress, 0);
+                    newRegion->slides.push_back(0);
+                    this->result->regions.push_back(newRegion);
+                    this->result->count++;
+                }
+            }
+        }
+        
+        // 优化：释放向量多余容量
+        for(auto region : this->result->regions) {
+            region->slides.shrink_to_fit();
+        }
+        this->result->regions.shrink_to_fit();
+        
+        NSLog(@"JJGroupSearch: final result count=%zu", this->result->count);
     }
 };
 

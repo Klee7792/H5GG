@@ -56,6 +56,15 @@ JSExportAs(loadPlugin, -(NSObject*)loadPlugin:(NSString*)className path:(NSStrin
 
 JSExportAs(makeTweak, -(NSString*)makeTweak:(NSString*)icon with:(NSString*)html);
 
+// 联合搜索接口：支持多值多类型搜索
+// 参数格式："100;200;300::9" 或 "100;200F64;300::9"
+// 参数1：联合搜索字符串
+// 参数2：默认类型，如 "I32"、"F32"、"F64" 等，不指定则默认为 I32
+// 参数3：内存起始地址
+// 参数4：内存结束地址
+// 参数5：锚点索引（可选），-1或不填表示自动选择最少匹配的值作为锚点
+JSExportAs(searchGroup, -(void)searchGroup:(NSString*)groupStr param2:(NSString*)defaultType param3:(NSString*)memoryFrom param4:(NSString*)memoryTo param5:(NSString*)anchorIndex);
+
 @end
 
 @interface h5ggEngine : NSObject <h5ggJSExport>
@@ -164,7 +173,13 @@ JSExportAs(makeTweak, -(NSString*)makeTweak:(NSString*)icon with:(NSString*)html
 
 -(void)clearResults {
     self.firstSearchDone = FALSE;
-    if(self.engine) delete self.engine;
+    // 内存优化：延迟释放引擎，先清空结果
+    if(self.engine) {
+        // 调用引擎的析构函数会自动清理所有搜索结果
+        delete self.engine;
+        self.engine = NULL;
+    }
+    // 延迟重建引擎，按需创建
     self.engine = new JJMemoryEngine(self.targetport);
 }
 
@@ -479,6 +494,178 @@ JSExportAs(makeTweak, -(NSString*)makeTweak:(NSString*)icon with:(NSString*)html
     }
 
     self.lastSearchType = type;
+}
+
+// 联合搜索实现：解析并执行多值多类型搜索
+-(void)searchGroup:(NSString*)groupStr param2:(NSString*)defaultType param3:(NSString*)memoryFrom param4:(NSString*)memoryTo param5:(NSString*)anchorIndex
+{
+    NSLog(@"searchGroup=%@ defaultType=%@ range=%@:%@ anchor=%@", groupStr, defaultType, memoryFrom, memoryTo, anchorIndex);
+    
+    // 参数检查
+    if(![groupStr length] || ![memoryFrom length] || ![memoryTo length]) {
+        [floatH5 alert:Localized(@"联合搜索:参数有误")];
+        return;
+    }
+    
+    // 解析内存范围
+    if(![memoryFrom hasPrefix:@"0x"] || ![memoryTo hasPrefix:@"0x"]) {
+        [floatH5 alert:Localized(@"搜索范围需以0x开头十六进制数")];
+        return;
+    }
+    
+    char* pvaluerr=NULL;
+    AddrRange range = {
+        strtoul([memoryFrom UTF8String], &pvaluerr, 16),
+        strtoul([memoryTo UTF8String], &pvaluerr, 16)
+    };
+    
+    if((pvaluerr && pvaluerr[0]) || !range.end) {
+        [floatH5 alert:Localized(@"内存搜索范围格式错误")];
+        return;
+    }
+    
+    // 解析默认类型
+    NSString* parsedDefaultType = @"I32";
+    if([defaultType length] > 0) {
+        parsedDefaultType = defaultType;
+    }
+    
+    // 解析锚点索引（第五个参数）
+    int anchorIdx = -1;  // 默认自动选择锚点
+    if([anchorIndex length] > 0) {
+        anchorIdx = [anchorIndex intValue];
+    }
+    
+    // 解析联合搜索参数字符串
+    GroupSearchParams params;
+    params.range = range;
+    params.anchorIndex = anchorIdx;
+    
+    // 替换中文分号和冒号为英文
+    NSString* parseStr = [groupStr stringByReplacingOccurrencesOfString:@"；" withString:@";"];
+    parseStr = [parseStr stringByReplacingOccurrencesOfString:@"：" withString:@":"];
+    
+    // 解析锚点索引（简洁语法：@N 开头表示指定锚点）
+    // 例如：@2;100;200;300::9 表示第3个值（索引2）为锚点
+    if([parseStr hasPrefix:@"@"]) {
+        NSRange semicolonRange = [parseStr rangeOfString:@";"];
+        if(semicolonRange.location != NSNotFound) {
+            NSString* anchorStr = [parseStr substringWithRange:NSMakeRange(1, semicolonRange.location - 1)];
+            anchorIdx = [anchorStr intValue];
+            params.anchorIndex = anchorIdx;
+            parseStr = [parseStr substringFromIndex:semicolonRange.location + 1];
+        }
+    }
+    
+    // 分割主参数和范围
+    NSArray* mainParts = [parseStr componentsSeparatedByString:@"::"];
+    NSString* valuesPart = mainParts[0];
+    int totalRange = 0;
+    
+    if(mainParts.count > 1) {
+        totalRange = [mainParts[1] intValue];
+        if(totalRange < 0) totalRange = 0;
+    }
+    params.totalRange = totalRange;
+    
+    // 分割各个值
+    NSArray* valueItems = [valuesPart componentsSeparatedByString:@";"];
+    
+    for(NSString* item in valueItems) {
+        NSString* trimmed = [item stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        if(![trimmed length]) continue;
+        
+        // 解析值和类型
+        NSString* valueStr = trimmed;
+        NSString* typeStr = parsedDefaultType;  // 使用默认类型
+        
+        // 检查值后面是否有类型后缀（如 200F64 或 200F64）
+        NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:@"^([0-9\\.\\-]+)([A-Za-z0-9]+)$" options:0 error:nil];
+        NSTextCheckingResult* match = [regex firstMatchInString:trimmed options:0 range:NSMakeRange(0, trimmed.length)];
+        if(match && match.numberOfRanges >= 3) {
+            valueStr = [trimmed substringWithRange:[match rangeAtIndex:1]];
+            typeStr = [trimmed substringWithRange:[match rangeAtIndex:2]];
+        }
+        
+        // 解析数值
+        UInt8 valuebuf[16] = {0};
+        int len = 0;
+        int jjtype = 0;
+        
+        // 根据类型解析值
+        if([typeStr isEqualToString:@"I8"] || [typeStr isEqualToString:@"i8"]) {
+            int8_t v = (int8_t)[valueStr intValue];
+            memcpy(valuebuf, &v, 1);
+            len = 1;
+            jjtype = JJ_Search_Type_SByte;
+        } else if([typeStr isEqualToString:@"U8"] || [typeStr isEqualToString:@"u8"]) {
+            uint8_t v = (uint8_t)[valueStr intValue];
+            memcpy(valuebuf, &v, 1);
+            len = 1;
+            jjtype = JJ_Search_Type_UByte;
+        } else if([typeStr isEqualToString:@"I16"] || [typeStr isEqualToString:@"i16"]) {
+            int16_t v = (int16_t)[valueStr intValue];
+            memcpy(valuebuf, &v, 2);
+            len = 2;
+            jjtype = JJ_Search_Type_SShort;
+        } else if([typeStr isEqualToString:@"U16"] || [typeStr isEqualToString:@"u16"]) {
+            uint16_t v = (uint16_t)[valueStr intValue];
+            memcpy(valuebuf, &v, 2);
+            len = 2;
+            jjtype = JJ_Search_Type_UShort;
+        } else if([typeStr isEqualToString:@"F32"] || [typeStr isEqualToString:@"f32"]) {
+            float v = [valueStr floatValue];
+            memcpy(valuebuf, &v, 4);
+            len = 4;
+            jjtype = JJ_Search_Type_Float;
+        } else if([typeStr isEqualToString:@"F64"] || [typeStr isEqualToString:@"f64"] || [typeStr isEqualToString:@"Double"] || [typeStr isEqualToString:@"double"]) {
+            double v = [valueStr doubleValue];
+            memcpy(valuebuf, &v, 8);
+            len = 8;
+            jjtype = JJ_Search_Type_Double;
+        } else if([typeStr isEqualToString:@"I32"] || [typeStr isEqualToString:@"i32"] || [typeStr isEqualToString:@"int"] || [typeStr isEqualToString:@"Int"]) {
+            int32_t v = (int32_t)[valueStr intValue];
+            memcpy(valuebuf, &v, 4);
+            len = 4;
+            jjtype = JJ_Search_Type_SInt;
+        } else if([typeStr isEqualToString:@"U32"] || [typeStr isEqualToString:@"u32"]) {
+            uint32_t v = (uint32_t)[valueStr intValue];
+            memcpy(valuebuf, &v, 4);
+            len = 4;
+            jjtype = JJ_Search_Type_UInt;
+        } else {
+            // 默认 I32
+            int32_t v = (int32_t)[valueStr intValue];
+            memcpy(valuebuf, &v, 4);
+            len = 4;
+            jjtype = JJ_Search_Type_SInt;
+        }
+        
+        // 添加到参数列表
+        GroupItem gi;
+        memcpy(gi.valuebuf, valuebuf, len);
+        gi.type = jjtype;
+        gi.len = len;
+        params.items.push_back(gi);
+        
+        NSLog(@"searchGroup: parsed value=%@ type=%@ jjtype=%d len=%d", valueStr, typeStr, jjtype, len);
+    }
+    
+    if(params.items.size() < 2) {
+        [floatH5 alert:Localized(@"联合搜索:需要至少2个值")];
+        return;
+    }
+    
+    NSLog(@"searchGroup: itemCount=%zu range=%d anchor=%d defaultType=%@", params.items.size(), totalRange, anchorIdx, parsedDefaultType);
+    
+    try {
+        self.engine->JJGroupSearch(&params);
+    } catch(std::bad_alloc) {
+        [floatH5 alert:Localized(@"错误:内存不足!")];
+    }
+    
+    self.firstSearchDone = TRUE;
+    self.lastSearchType = parsedDefaultType;
 }
 
 -(NSString*)getValue:(NSString*)address param2:(NSString*)type

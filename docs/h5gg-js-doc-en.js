@@ -1,4 +1,4 @@
-**************** H5GG JavaScript Engine Document (update on v7.5) ********************
+**************** H5GG JavaScript Engine Document (update on v9.0.5) ********************
 
 h5gg is the engine object, which can call the following functions (similar to the lua interface of Android gg, but the parameters are somewhat different)
 
@@ -10,6 +10,11 @@ h5gg.setFloatTolerance('floating-point deviation'); //Set the deviation range of
 h5gg.searchNumber('value', 'type', 'search lower limit', 'search upper limit'); //Search or secondary search (improve) exact value
 
 h5gg.searchNearby('value', 'type', 'adjacent range'); //Nearby (joint) search, consistent with igg's
+h5gg.searchGroup('values', 'defaultType', 'search lower limit', 'search upper limit', 'anchorIndex'); //Group search, supports multi-value multi-type search
+//Format: "100;200;300::9" means searching for 100, 200, 300 in sequence within 9 bytes
+//Multi-type: "100;200F64;300::13" means 100 and 300 are I32, 200 is F64
+//Specify anchor: "@2;100;200;300::9" means using the 3rd value (index 2) as anchor
+//anchorIndex: -1 or not specified means automatic selection (recommended)
 
 h5gg.getValue('address', 'type'); //Read the value of the specified address, return the value string
 
