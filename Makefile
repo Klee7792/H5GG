@@ -1,6 +1,6 @@
 ARCHS = arm64
 
-TARGET = iphone:clang:latest:11.0
+TARGET = iphone:clang:latest:14.0
 
 THEOS_DEVICE_IP = iphoneX.local
 

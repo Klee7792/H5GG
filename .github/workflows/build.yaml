@@ -37,9 +37,11 @@ jobs:
           if [ ! -d "$THEOS" ]; then
             git clone --depth=1 https://github.com/theos/theos.git $THEOS
           fi
+          # Update theos to download vendor dependencies
+          $THEOS/bin/update-theos -f
           echo "THEOS=$THEOS" >> $GITHUB_ENV
           echo "$THEOS/bin" >> $GITHUB_PATH
-          ls -la $THEOS/
+          ls -la $THEOS/vendor/
 
       - name: Setup iOS SDK
         run: |
