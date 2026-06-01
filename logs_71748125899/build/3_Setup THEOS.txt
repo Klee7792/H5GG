@@ -1,0 +1,35 @@
+﻿2026-06-01T14:32:23.6032180Z ##[group]Run if [ ! -d "$THEOS" ]; then
+2026-06-01T14:32:23.6032770Z [36;1mif [ ! -d "$THEOS" ]; then[0m
+2026-06-01T14:32:23.6033960Z [36;1m  git clone --depth=1 https://github.com/theos/theos.git $THEOS[0m
+2026-06-01T14:32:23.6035080Z [36;1mfi[0m
+2026-06-01T14:32:23.6035310Z [36;1mecho "THEOS=$THEOS" >> $GITHUB_ENV[0m
+2026-06-01T14:32:23.6035660Z [36;1mecho "$THEOS/bin" >> $GITHUB_PATH[0m
+2026-06-01T14:32:23.6035990Z [36;1mls -la $THEOS/[0m
+2026-06-01T14:32:23.6402400Z shell: /bin/bash -e {0}
+2026-06-01T14:32:23.6402740Z env:
+2026-06-01T14:32:23.6402990Z   THEOS: /Users/runner/work/H5GG/H5GG/theos
+2026-06-01T14:32:23.6403280Z ##[endgroup]
+2026-06-01T14:32:23.6863250Z Cloning into '/Users/runner/work/H5GG/H5GG/theos'...
+2026-06-01T14:32:24.5819830Z total 128
+2026-06-01T14:32:24.5820200Z drwxr-xr-x  22 runner  staff    704 Jun  1 14:32 .
+2026-06-01T14:32:24.5820540Z drwxr-xr-x  49 runner  staff   1568 Jun  1 14:32 ..
+2026-06-01T14:32:24.5820870Z drwxr-xr-x  13 runner  staff    416 Jun  1 14:32 .git
+2026-06-01T14:32:24.5821320Z drwxr-xr-x   7 runner  staff    224 Jun  1 14:32 .github
+2026-06-01T14:32:24.5821670Z -rw-r--r--   1 runner  staff     89 Jun  1 14:32 .gitignore
+2026-06-01T14:32:24.5822020Z -rw-r--r--   1 runner  staff    750 Jun  1 14:32 .gitmodules
+2026-06-01T14:32:24.5822430Z -rw-r--r--   1 runner  staff   5219 Jun  1 14:32 CODE_OF_CONDUCT.md
+2026-06-01T14:32:24.5822770Z -rw-r--r--   1 runner  staff  35367 Jun  1 14:32 LICENSE.md
+2026-06-01T14:32:24.5823110Z -rw-r--r--   1 runner  staff   1045 Jun  1 14:32 Prefix.pch
+2026-06-01T14:32:24.5823410Z -rw-r--r--   1 runner  staff   3290 Jun  1 14:32 README.md
+2026-06-01T14:32:24.5823720Z drwxr-xr-x  21 runner  staff    672 Jun  1 14:32 bin
+2026-06-01T14:32:24.5824020Z drwxr-xr-x  33 runner  staff   1056 Jun  1 14:32 docs
+2026-06-01T14:32:24.5824310Z drwxr-xr-x   3 runner  staff     96 Jun  1 14:32 extras
+2026-06-01T14:32:24.5824620Z drwxr-xr-x   3 runner  staff     96 Jun  1 14:32 include
+2026-06-01T14:32:24.5824910Z drwxr-xr-x   4 runner  staff    128 Jun  1 14:32 lib
+2026-06-01T14:32:24.5825210Z drwxr-xr-x  28 runner  staff    896 Jun  1 14:32 makefiles
+2026-06-01T14:32:24.5825520Z drwxr-xr-x   3 runner  staff     96 Jun  1 14:32 mod
+2026-06-01T14:32:24.5825810Z -rw-r--r--   1 runner  staff    657 Jun  1 14:32 package.json
+2026-06-01T14:32:24.5826120Z drwxr-xr-x   3 runner  staff     96 Jun  1 14:32 sdks
+2026-06-01T14:32:24.5826400Z drwxr-xr-x   3 runner  staff     96 Jun  1 14:32 templates
+2026-06-01T14:32:24.5826720Z drwxr-xr-x   3 runner  staff     96 Jun  1 14:32 toolchain
+2026-06-01T14:32:24.5827000Z drwxr-xr-x  11 runner  staff    352 Jun  1 14:32 vendor

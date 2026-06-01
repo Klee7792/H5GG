@@ -44,13 +44,18 @@ jobs:
       - name: Setup iOS SDK
         run: |
           export THEOS=$THEOS
-          if [ ! -d "$THEOS/sdks" ]; then
-            mkdir -p $THEOS/sdks
+          mkdir -p $THEOS/sdks
+          # 检查是否已有 SDK 文件（非空目录）
+          if [ -z "$(ls -A $THEOS/sdks/ | grep -v .keep)" ]; then
+            echo "Downloading iOS SDKs..."
             curl -sL https://github.com/theos/sdks/archive/refs/heads/master.zip -o /tmp/sdks.zip
             unzip -q /tmp/sdks.zip -d $THEOS/sdks/
             mv $THEOS/sdks/sdks-master/* $THEOS/sdks/
             rm -rf $THEOS/sdks/sdks-master /tmp/sdks.zip
+          else
+            echo "SDKs already exist, skipping download"
           fi
+          echo "=== Available SDKs ==="
           ls -la $THEOS/sdks/
 
       - name: Prepare build environment

@@ -1,0 +1,8 @@
+2026-06-01T14:32:13.0320000Z Evaluating build.if
+2026-06-01T14:32:13.0320000Z Evaluating: success()
+2026-06-01T14:32:13.0320000Z Result: true
+2026-06-01T14:32:13.0390000Z Requested labels: macos-14
+2026-06-01T14:32:13.0390000Z Job defined at: Klee7792/H5GG/.github/workflows/build.yaml@refs/heads/main
+2026-06-01T14:32:13.0390000Z Waiting for a runner to pick up this job...
+2026-06-01T14:32:13.6130000Z Job is waiting for a hosted runner to come online.
+2026-06-01T14:32:13.6130000Z Job is about to start running on the hosted runner: GitHub Actions 1000000042

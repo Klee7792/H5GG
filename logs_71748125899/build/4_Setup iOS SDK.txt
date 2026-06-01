@@ -1,0 +1,18 @@
+﻿2026-06-01T14:32:24.5857190Z ##[group]Run export THEOS=$THEOS
+2026-06-01T14:32:24.5857460Z [36;1mexport THEOS=$THEOS[0m
+2026-06-01T14:32:24.5857660Z [36;1mif [ ! -d "$THEOS/sdks" ]; then[0m
+2026-06-01T14:32:24.5857880Z [36;1m  mkdir -p $THEOS/sdks[0m
+2026-06-01T14:32:24.5858270Z [36;1m  curl -sL https://github.com/theos/sdks/archive/refs/heads/master.zip -o /tmp/sdks.zip[0m
+2026-06-01T14:32:24.5868470Z [36;1m  unzip -q /tmp/sdks.zip -d $THEOS/sdks/[0m
+2026-06-01T14:32:24.5868810Z [36;1m  mv $THEOS/sdks/sdks-master/* $THEOS/sdks/[0m
+2026-06-01T14:32:24.5869140Z [36;1m  rm -rf $THEOS/sdks/sdks-master /tmp/sdks.zip[0m
+2026-06-01T14:32:24.5869390Z [36;1mfi[0m
+2026-06-01T14:32:24.5869560Z [36;1mls -la $THEOS/sdks/[0m
+2026-06-01T14:32:24.5921710Z shell: /bin/bash -e {0}
+2026-06-01T14:32:24.5921910Z env:
+2026-06-01T14:32:24.5922090Z   THEOS: /Users/runner/work/H5GG/H5GG/theos
+2026-06-01T14:32:24.5922610Z ##[endgroup]
+2026-06-01T14:32:24.6233550Z total 0
+2026-06-01T14:32:24.6285340Z drwxr-xr-x   3 runner  staff   96 Jun  1 14:32 .
+2026-06-01T14:32:24.6286640Z drwxr-xr-x  22 runner  staff  704 Jun  1 14:32 ..
+2026-06-01T14:32:24.6287150Z -rw-r--r--   1 runner  staff    0 Jun  1 14:32 .keep
