@@ -95,7 +95,9 @@ JSExportAs(searchGroup, -(void)searchGroup:(NSString*)groupStr param2:(NSString*
 }
 
 -(BOOL)require:(double)minver {
-    if(H5GG_VERSION < minver) {
+    NSString *versionStr = @H5GG_VERSION;
+    double version = [versionStr doubleValue];
+    if(version < minver) {
         JSContext.currentContext.exception = [JSValue valueWithNewErrorFromMessage:Localized(@"当前H5GG版本过低") inContext:[JSContext currentContext]];
         return NO;
     }
