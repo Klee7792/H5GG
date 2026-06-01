@@ -1,6 +1,6 @@
 ARCHS = arm64
 
-TARGET = iphone:13.7:11.4
+TARGET = iphone:16.3:11.0
 
 THEOS_DEVICE_IP = iphoneX.local
 
