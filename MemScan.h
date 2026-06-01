@@ -26,6 +26,7 @@ using namespace std;
 // 内存优化常量
 #define MAX_SEARCH_RESULTS 100000  // 最大搜索结果数量限制，防止内存耗尽
 #define REGION_CACHE_SIZE 64 * 1024 * 1024  // 单次加载区域最大大小64MB
+#define GROUP_SEARCH_TIMEOUT_SECONDS 60  // 联合搜索超时时间（秒）
 
 extern "C" kern_return_t mach_vm_region
 (
@@ -995,6 +996,9 @@ public:
         
         NSLog(@"JJGroupSearch: itemCount=%d, anchorIdx=%d, range=%d", itemCount, anchorIdx, range);
         
+        // 记录开始时间用于超时检测
+        time_t startTime = time(NULL);
+        
         // 优化锚点选择：如果指定了锚点索引则使用它，否则自动选择
         if(anchorIdx < 0 || anchorIdx >= itemCount) {
             // 自动选择锚点 - 选择匹配数量最少的值作为锚点
@@ -1033,6 +1037,12 @@ public:
         
         // 第二阶段：对每个锚点匹配，验证其他值
         for(size_t i = 0; i < anchorMatches.size() && !this->memoryLimitReached; i++) {
+            // 检查超时
+            time_t currentTime = time(NULL);
+            if(currentTime - startTime >= GROUP_SEARCH_TIMEOUT_SECONDS) {
+                NSLog(@"JJGroupSearch: timeout after %d seconds", GROUP_SEARCH_TIMEOUT_SECONDS);
+                break;
+            }
             uint64_t anchorAddr = anchorMatches[i];
             bool allMatch = true;
             uint64_t baseAddress = 0;  // 记录第一个值的地址（用于结果输出）
